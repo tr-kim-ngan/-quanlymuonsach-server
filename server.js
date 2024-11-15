@@ -45,6 +45,7 @@ const sachTuyen = require('./tuyen_duong/sachTuyen');
 const nhaXuatBanTuyen = require('./tuyen_duong/nhaXuatBanTuyen');
 const nhanVienTuyen = require('./tuyen_duong/nhanVienTuyen');
 const theoDoiMuonSachTuyen = require('./tuyen_duong/theoDoiMuonSachTuyen');
+const authTuyen = require('./tuyen_duong/authTuyen');
 
 // Thêm các tuyến đường vào ứng dụng
 ungDung.use('/api/docgia', docGiaTuyen);
@@ -52,7 +53,7 @@ ungDung.use('/api/sach', sachTuyen);
 ungDung.use('/api/nhaxuatban', nhaXuatBanTuyen);
 ungDung.use('/api/nhanvien', nhanVienTuyen);
 ungDung.use('/api/theodoimuonsach', theoDoiMuonSachTuyen);
-
+ungDung.use('/api/auth', authTuyen);
 // Lắng nghe cổng
 ungDung.listen(CONG, () => {
   console.log(`Máy chủ đang chạy trên cổng ${CONG}`);

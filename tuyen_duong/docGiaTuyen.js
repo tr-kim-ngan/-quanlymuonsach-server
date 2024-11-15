@@ -1,6 +1,7 @@
 // docGiaTuyen.js
 const express = require('express');
 const tuyen = express.Router();
+const moment = require('moment');
 const DocGia = require('../mo_hinh/DocGia');
 
 // Lấy tất cả độc giả
@@ -35,15 +36,26 @@ tuyen.get('/:id', async (req, res) => {
   }
 });
 
+
+
 // Cập nhật thông tin độc giả
 tuyen.put('/:id', async (req, res) => {
   try {
+    console.log("Cập nhật thông tin cho ID:", req.params.id);
+    console.log("Dữ liệu cập nhật:", req.body);
+
     const docGiaCapNhat = await DocGia.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!docGiaCapNhat) {
+      return res.status(404).json({ message: "Không tìm thấy Độc Giả để cập nhật" });
+    }
     res.json(docGiaCapNhat);
   } catch (loi) {
+    console.error("Lỗi khi cập nhật:", loi);
     res.status(400).json({ message: loi.message });
   }
 });
+
+
 
 // Xóa độc giả
 tuyen.delete('/:id', async (req, res) => {

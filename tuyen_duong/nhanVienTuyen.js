@@ -2,6 +2,7 @@
 const express = require('express');
 const tuyen = express.Router();
 const NhanVien = require('../mo_hinh/NhanVien');
+const bcrypt = require('bcrypt');
 
 // Lấy tất cả nhân viên
 tuyen.get('/', async (req, res) => {
@@ -13,17 +14,31 @@ tuyen.get('/', async (req, res) => {
   }
 });
 
-// Thêm nhân viên mới
+
+// Thêm nhân viên mới với mã hóa mật khẩu
 tuyen.post('/', async (req, res) => {
-  const nhanVien = new NhanVien(req.body);
   try {
-    const nhanVienMoi = await nhanVien.save();
-    res.status(201).json(nhanVienMoi);
-  } catch (loi) {
-    res.status(400).json({ message: loi.message });
+    const { HoTenNV, username, Password, role, ChucVu, DiaChi, SoDienThoai } = req.body;
+
+    // Mã hóa mật khẩu
+    const hashedPassword = await bcrypt.hash(Password, 10);
+
+    const nhanVienMoi = new NhanVien({
+      HoTenNV,
+      username,
+      Password: hashedPassword,
+      role: role || 'admin',
+      ChucVu,
+      DiaChi,
+      SoDienThoai
+    });
+
+    const nhanVien = await nhanVienMoi.save();
+    res.status(201).json(nhanVien);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 });
-
 // Lấy thông tin nhân viên theo ID
 tuyen.get('/:id', async (req, res) => {
   try {

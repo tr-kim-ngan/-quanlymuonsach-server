@@ -71,8 +71,9 @@ tuyen.put('/:id', upload.single('Anh'), async (req, res) => {
         sach.SoQuyen = req.body.SoQuyen;
         sach.NamXuatBan = req.body.NamXuatBan;
         sach.MaNXB = req.body.MaNXB;
-        sach.NguonGoc = req.body.NguonGoc;
+        
         sach.MoTa = req.body.MoTa;
+         sach.TacGia = req.body.TacGia;
 
         // Kiểm tra nếu có ảnh mới được upload
         if (req.file) {

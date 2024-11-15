@@ -19,9 +19,16 @@ tuyen.post('/', async (req, res) => {
   try {
     // Kiểm tra xem Gmail đã tồn tại hay chưa
     const { Gmail } = req.body;
+    // Kiểm tra tính hợp lệ của Gmail
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(Gmail)) {
+      return res.status(400).json({ message: 'Địa chỉ Gmail không hợp lệ.' });
+    }
+
+
     const nhaXuatBanTonTai = await NhaXuatBan.findOne({ Gmail });
     if (nhaXuatBanTonTai) {
-      return res.status(400).json({ message: 'Gmail này đã tồn tại trong hệ thống.' });
+      return res.status(400).json({ message: 'Gmail này đã tồn tại ' });
     }
 
     // Tạo mới nhà xuất bản nếu Gmail chưa tồn tại
@@ -45,37 +52,36 @@ tuyen.get('/:id', async (req, res) => {
 });
 
 // Cập nhật thông tin nhà xuất bản
+// Cập nhật thông tin nhà xuất bản
 tuyen.put('/:id', async (req, res) => {
   try {
-    const nhaXuatBanCapNhat = await NhaXuatBan.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const { Gmail, TenNXB, DiaChi } = req.body;
+
+    // Kiểm tra tính hợp lệ của Gmail
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(Gmail)) {
+      return res.status(400).json({ message: 'Địa chỉ Gmail không hợp lệ.' });
+    }
+
+    // Kiểm tra xem Gmail đã tồn tại ở nhà xuất bản khác
+    const nhaXuatBanTonTai = await NhaXuatBan.findOne({ Gmail, _id: { $ne: req.params.id } });
+    if (nhaXuatBanTonTai) {
+      return res.status(400).json({ message: 'Gmail này đã tồn tại' });
+    }
+
+    // Cập nhật thông tin
+    const nhaXuatBanCapNhat = await NhaXuatBan.findByIdAndUpdate(req.params.id, { TenNXB, DiaChi, Gmail }, { new: true });
     res.json(nhaXuatBanCapNhat);
   } catch (loi) {
+    console.error("Lỗi khi cập nhật nhà xuất bản:", loi);
     res.status(400).json({ message: loi.message });
   }
 });
 
+
+
+
 // Xóa nhà xuất bản
-// tuyen.delete('/:id', async (req, res) => {
-//   try {
-//     const nhaXuatBanId = req.params.id;
-//     console.log("Đang kiểm tra sách liên quan đến nhà xuất bản:", nhaXuatBanId);
-//     // Kiểm tra xem nhà xuất bản có sách liên quan không
-//     const sachLienQuan = await Sach.findOne({ nhaXuatBan: nhaXuatBanId });
-//     console.log("Kết quả kiểm tra sách liên quan:", sachLienQuan);
-//     if (sachLienQuan) {
-//       // Nếu có sách liên quan, không cho phép xóa
-//       return res.status(400).json({ message: 'Không thể xóa nhà xuất bản, có sách liên quan.' });
-//     }
-
-//     // Nếu không có sách liên quan, tiếp tục xóa
-//     await NhaXuatBan.findByIdAndDelete(nhaXuatBanId);
-//     res.json({ message: 'Xóa nhà xuất bản thành công.' });
-//   } catch (loi) {
-//     console.error("Lỗi khi xóa nhà xuất bản:", loi);
-//     res.status(500).json({ message: loi.message });
-//   }
-// });
-
 // Xóa nhà xuất bản
 tuyen.delete('/:id', async (req, res) => {
     try {
@@ -83,7 +89,10 @@ tuyen.delete('/:id', async (req, res) => {
 
         // Kiểm tra xem nhà xuất bản có được tham chiếu bởi sách nào không
         const sachLienQuan = await Sach.find({ MaNXB: nhaXuatBanId });
+        console.log("Sách liên quan:", sachLienQuan); // Log thông tin sách liên quan
+
         if (sachLienQuan.length > 0) {
+            // Trả về mã trạng thái 400 và thông báo cụ thể
             return res.status(400).json({ message: 'Không thể xóa nhà xuất bản vì có sách liên quan.' });
         }
 
@@ -95,6 +104,8 @@ tuyen.delete('/:id', async (req, res) => {
         res.status(500).json({ message: 'Có lỗi xảy ra khi xóa nhà xuất bản.' });
     }
 });
+
+
 
 
 
