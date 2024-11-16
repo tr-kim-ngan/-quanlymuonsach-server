@@ -22,8 +22,9 @@ tuyen.post('/', upload.single('Anh'), async (req, res) => {
     try {
         const sachData = {
             ...req.body,
-            Anh: req.file ? req.file.filename : null // Lưu tên file ảnh
-        };
+            Anh: req.file ? req.file.filename : null, // Lưu tên file ảnh
+          NgayHanMuon: req.body.NgayHanMuon
+          };
         const sach = new Sach(sachData);
         const sachMoi = await sach.save();
         res.status(201).json(sachMoi);
@@ -74,6 +75,7 @@ tuyen.put('/:id', upload.single('Anh'), async (req, res) => {
         
         sach.MoTa = req.body.MoTa;
          sach.TacGia = req.body.TacGia;
+         sach.NgayHanMuon = req.body.NgayHanMuon;
 
         // Kiểm tra nếu có ảnh mới được upload
         if (req.file) {
