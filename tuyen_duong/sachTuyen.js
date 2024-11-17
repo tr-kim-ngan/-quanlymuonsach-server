@@ -4,6 +4,11 @@ const tuyen = express.Router();
 const Sach = require('../mo_hinh/Sach');
 const multer = require('multer');
 const path = require('path');
+const DonHang = require('../mo_hinh/DonHang');
+const HoaDon = require('../mo_hinh/HoaDon');
+const TheoDoiMuonSach = require('../mo_hinh/TheoDoiMuonSach');
+
+
 
 // Cấu hình multer
 const storage = multer.diskStorage({
@@ -93,14 +98,60 @@ tuyen.put('/:id', upload.single('Anh'), async (req, res) => {
 
 
 
+// // Xóa sách
+// tuyen.delete('/:id', async (req, res) => {
+//   try {
+//     await Sach.findByIdAndDelete(req.params.id);
+//     res.json({ message: 'Sách đã bị xóa' });
+//   } catch (loi) {
+//     res.status(500).json({ message: loi.message });
+//   }
+// });
+
+
+
+// Xóa sách với điều kiện kiểm tra
 // Xóa sách
 tuyen.delete('/:id', async (req, res) => {
   try {
-    await Sach.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Sách đã bị xóa' });
+    const sachId = req.params.id;
+
+    // Log ID của sách để kiểm tra
+    console.log(`Đang xóa sách có ID: ${sachId}`);
+
+    // Kiểm tra nếu sách này có trong đơn hàng
+    const donHangCoSach = await DonHang.findOne({ 'items.MaSach': sachId });
+    if (donHangCoSach) {
+      console.log('Sách có trong đơn hàng, không thể xóa.');
+      return res.status(400).json({ message: 'Không thể xóa sách vì có trong đơn hàng.' });
+    }
+
+    // Kiểm tra nếu sách này có trong hóa đơn
+    const hoaDonCoSach = await HoaDon.findOne({ 'items.MaSach': sachId });
+    if (hoaDonCoSach) {
+      console.log('Sách có trong hóa đơn, không thể xóa.');
+      return res.status(400).json({ message: 'Không thể xóa sách vì có trong hóa đơn.' });
+    }
+
+    // Kiểm tra nếu sách này có trong bảng theo dõi mượn sách
+    const theoDoiMuonSachCoSach = await TheoDoiMuonSach.findOne({ MaSach: sachId });
+    if (theoDoiMuonSachCoSach) {
+      console.log('Sách có trong bảng theo dõi mượn sách, không thể xóa.');
+      return res.status(400).json({ message: 'Không thể xóa sách vì có trong bảng theo dõi mượn sách.' });
+    }
+
+    // Nếu không có ràng buộc nào, tiến hành xóa sách
+    await Sach.findByIdAndDelete(sachId);
+    res.json({ message: 'Sách đã bị xóa thành công!' });
   } catch (loi) {
+    console.error('Lỗi khi xóa sách:', loi);
     res.status(500).json({ message: loi.message });
   }
 });
+
+
+
+
+
 
 module.exports = tuyen;

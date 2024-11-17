@@ -24,6 +24,7 @@ tuyen.get("/", async (req, res) => {
         : "N/A",
       TenSach: record.MaSach ? record.MaSach.TenSach : "N/A",
       NgayHanMuon: record.MaSach?.NgayHanMuon || "Không có hạn",
+       soLuong: record.soLuong || "N/A",
     }));
 
     res.json(danhSachDaXuLy);
