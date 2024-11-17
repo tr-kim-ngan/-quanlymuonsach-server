@@ -21,6 +21,10 @@ const donHangSchema = new mongoose.Schema({
   },
   ngayTao: { type: Date, default: Date.now },
   ngayCapNhat: { type: Date, default: Date.now },
+  // Thông tin người nhận
+  tenNguoiNhan: { type: String, required: true },
+  soDienThoai: { type: String, required: true },
+  diaChi: { type: String, required: true },
 }, { collection: 'DonHang' });
 
 module.exports = mongoose.models.DonHang || mongoose.model('DonHang', donHangSchema);

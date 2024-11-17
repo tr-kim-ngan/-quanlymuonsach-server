@@ -24,9 +24,9 @@ tuyen.get('/distinct-trangThai', async (req, res) => {
 // Tạo đơn hàng mới
 tuyen.post('/', async (req, res) => {
   try {
-    const { MaDocGia, items, tongTien } = req.body;
+    const { MaDocGia, items, tongTien, tenNguoiNhan, soDienThoai, diaChi } = req.body;
 
-    if (!MaDocGia || !items || !tongTien) {
+    if (!MaDocGia || !items || !tongTien || !tenNguoiNhan || !soDienThoai || !diaChi) {
       return res.status(400).json({ message: 'Thiếu thông tin cần thiết' });
     }
 
@@ -56,6 +56,9 @@ tuyen.post('/', async (req, res) => {
       items,
       tongTien,
       trangThai: 'Chờ xử lý',
+      tenNguoiNhan,
+      soDienThoai,
+      diaChi
     });
 
     const donHangDaLuu = await donHang.save();
@@ -112,13 +115,9 @@ tuyen.put('/:id', async (req, res) => {
     if (!validStatuses.includes(trangThai)) {
       return res.status(400).json({ message: 'Trạng thái không hợp lệ.' });
     }
-
     // Cập nhật trạng thái và ngày cập nhật
     donHang.trangThai = trangThai;
     donHang.ngayCapNhat = Date.now();
-
-
-
     // Nếu trạng thái là "Đã hoàn thành", tạo hóa đơn
     if (trangThai === 'Đã hoàn thành') {
       console.log("Dữ liệu đơn hàng trước khi tạo hóa đơn:", donHang);
@@ -144,8 +143,6 @@ tuyen.put('/:id', async (req, res) => {
         console.error("Lỗi khi lưu hóa đơn:", error);
       }
     }
-
-
     // Lưu lại đơn hàng
     await donHang.save();
 
@@ -155,8 +152,6 @@ tuyen.put('/:id', async (req, res) => {
     res.status(500).json({ message: 'Không thể cập nhật trạng thái đơn hàng' });
   }
 });
-
-
 
 // Hủy đơn hàng và cập nhật lại số lượng sách
 tuyen.delete('/:id', async (req, res) => {
@@ -203,4 +198,35 @@ tuyen.get('/', async (req, res) => {
     res.status(500).json({ message: 'Không thể lấy danh sách đơn hàng' });
   }
 });
+// Cập nhật thông tin người nhận của đơn hàng
+tuyen.put('/capnhat-thongtin/:id', async (req, res) => {
+  try {
+    const { tenNguoiNhan, soDienThoai, diaChi } = req.body;
+
+    if (!tenNguoiNhan || !soDienThoai || !diaChi) {
+      return res.status(400).json({ message: 'Thiếu thông tin cần thiết' });
+    }
+
+    // Tìm đơn hàng
+    const donHang = await DonHang.findById(req.params.id);
+    if (!donHang) {
+      return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
+    }
+
+    // Cập nhật thông tin người nhận
+    donHang.tenNguoiNhan = tenNguoiNhan;
+    donHang.soDienThoai = soDienThoai;
+    donHang.diaChi = diaChi;
+
+    // Lưu lại đơn hàng
+    await donHang.save();
+
+    res.json({ message: 'Cập nhật thông tin thành công', donHang });
+  } catch (error) {
+    console.error('Lỗi khi cập nhật thông tin đơn hàng:', error);
+    res.status(500).json({ message: 'Không thể cập nhật thông tin đơn hàng' });
+  }
+});
+
+
 module.exports = tuyen;
