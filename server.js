@@ -48,6 +48,7 @@ const theoDoiMuonSachTuyen = require('./tuyen_duong/theoDoiMuonSachTuyen');
 const authTuyen = require('./tuyen_duong/authTuyen');
 const gioHangTuyen = require('./tuyen_duong/gioHangTuyen');
 const donHangTuyen = require('./tuyen_duong/donHangTuyen');
+const hoaDonTuyen = require('./tuyen_duong/hoaDonTuyen');
 
 // Thêm các tuyến đường vào ứng dụng
 ungDung.use('/api/docgia', docGiaTuyen);
@@ -58,6 +59,7 @@ ungDung.use('/api/theodoimuonsach', theoDoiMuonSachTuyen);
 ungDung.use('/api/auth', authTuyen);
 ungDung.use('/api/giohang', gioHangTuyen);
 ungDung.use('/api/donhang', donHangTuyen);
+ungDung.use('/api/hoadon', hoaDonTuyen);
 
 // Lắng nghe cổng
 ungDung.listen(CONG, () => {

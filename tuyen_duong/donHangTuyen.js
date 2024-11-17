@@ -2,7 +2,7 @@ const express = require('express');
 const tuyen = express.Router();
 const DonHang = require('../mo_hinh/DonHang'); // Đường dẫn đến mô hình đơn hàng
 const Sach = require('../mo_hinh/Sach'); // Đường dẫn đến mô hình sách
-
+const HoaDon = require('../mo_hinh/HoaDon');
 
 
 // Lấy danh sách các giá trị trạng thái trong cơ sở dữ liệu
@@ -17,6 +17,9 @@ tuyen.get('/distinct-trangThai', async (req, res) => {
     res.status(500).json({ message: 'Không thể lấy danh sách đơn hàng.' });
   }
 });
+
+
+
 
 // Tạo đơn hàng mới
 tuyen.post('/', async (req, res) => {
@@ -44,6 +47,7 @@ tuyen.post('/', async (req, res) => {
       // Cập nhật số lượng tồn kho
       sach.SoQuyen -= item.soLuong;
       await sach.save();
+       item.donGia = sach.DonGia; // Lưu giá sách vào item
     }
 
     // Tạo đơn hàng mới
@@ -92,14 +96,13 @@ tuyen.get('/:MaDocGia', async (req, res) => {
 tuyen.put('/:id', async (req, res) => {
   try {
     const { trangThai } = req.body;
-    console.log('Trạng thái nhận được:', trangThai);
 
     if (!trangThai) {
       return res.status(400).json({ message: 'Thiếu trạng thái cần cập nhật' });
     }
 
     // Tìm đơn hàng
-    const donHang = await DonHang.findById(req.params.id);
+    const donHang = await DonHang.findById(req.params.id).populate('items.MaSach');
     if (!donHang) {
       return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
     }
@@ -114,7 +117,36 @@ tuyen.put('/:id', async (req, res) => {
     donHang.trangThai = trangThai;
     donHang.ngayCapNhat = Date.now();
 
-    // Lưu lại
+
+
+    // Nếu trạng thái là "Đã hoàn thành", tạo hóa đơn
+    if (trangThai === 'Đã hoàn thành') {
+      console.log("Dữ liệu đơn hàng trước khi tạo hóa đơn:", donHang);
+
+      const hoaDonData = {
+        MaDocGia: donHang.MaDocGia,
+        items: donHang.items.map(item => ({
+          MaSach: item.MaSach._id || item.MaSach,
+          soLuong: item.soLuong,
+          donGia: item.MaSach.DonGia || 0
+        })),
+        tongTien: donHang.tongTien,
+        trangThai: 'Chưa thanh toán'
+      };
+
+      console.log("Dữ liệu hóa đơn chuẩn bị lưu:", hoaDonData);
+
+      try {
+        const hoaDon = new HoaDon(hoaDonData);
+        await hoaDon.save();
+        console.log(`Đã lưu hóa đơn thành công cho đơn hàng: ${donHang._id}`);
+      } catch (error) {
+        console.error("Lỗi khi lưu hóa đơn:", error);
+      }
+    }
+
+
+    // Lưu lại đơn hàng
     await donHang.save();
 
     res.json({ message: 'Cập nhật trạng thái thành công', donHang });
@@ -123,75 +155,6 @@ tuyen.put('/:id', async (req, res) => {
     res.status(500).json({ message: 'Không thể cập nhật trạng thái đơn hàng' });
   }
 });
-
-
-
-// Duyệt đơn hàng (Admin)
-// tuyen.put('/duyet/:id', async (req, res) => {
-//     try {
-//         const { trangThai } = req.body;
-
-//         console.log('Trạng thái yêu cầu cập nhật:', trangThai); // Log giá trị trangThai nhận được
-
-//         if (!trangThai || typeof trangThai !== 'string') {
-//             return res.status(400).json({ message: 'Thiếu hoặc sai định dạng trạng thái.' });
-//         }
-
-//         const cleanTrangThai = trangThai.trim();
-//         console.log('Trạng thái sau khi chuẩn hóa:', cleanTrangThai);
-
-//         // Kiểm tra xem trạng thái yêu cầu có thuộc các giá trị hợp lệ không
-//         if (!['Chờ xử lý', 'Đang giao', 'Đã hoàn thành', 'Đã hủy'].includes(cleanTrangThai)) {
-//             return res.status(400).json({ message: 'Trạng thái không hợp lệ.' });
-//         }
-
-//         // Tiếp tục logic cập nhật trạng thái...
-//     } catch (error) {
-//         console.error('Lỗi khi cập nhật trạng thái:', error);
-//         res.status(500).json({ message: 'Không thể cập nhật trạng thái.' });
-//     }
-// });
-
-// tuyen.put('/duyet/:id', async (req, res) => {
-//   try {
-//     const { trangThai } = req.body;
-
-//     console.log('Trạng thái yêu cầu cập nhật:', trangThai);
-
-//     if (!trangThai || typeof trangThai !== 'string') {
-//       return res.status(400).json({ message: 'Thiếu hoặc sai định dạng trạng thái.' });
-//     }
-
-//     const cleanTrangThai = trangThai.trim();
-//     console.log('Trạng thái sau khi chuẩn hóa:', cleanTrangThai);
-
-//     // Kiểm tra xem trạng thái yêu cầu có hợp lệ không
-//     const validStatuses = ['Chờ xử lý', 'Đang giao', 'Đã hoàn thành', 'Đã hủy'];
-//     if (!validStatuses.includes(cleanTrangThai)) {
-//       return res.status(400).json({ message: 'Trạng thái không hợp lệ.' });
-//     }
-
-//     // Tìm đơn hàng và cập nhật
-//     const donHang = await DonHang.findById(req.params.id);
-//     if (!donHang) {
-//       return res.status(404).json({ message: 'Không tìm thấy đơn hàng.' });
-//     }
-
-//     // Gán lại trạng thái và cập nhật
-//     donHang.trangThai = cleanTrangThai;
-//     donHang.ngayCapNhat = new Date();
-
-//     const updatedDonHang = await donHang.save();
-//     res.json({ message: 'Cập nhật trạng thái thành công.', donHang: updatedDonHang });
-//   } catch (error) {
-//     console.error('Lỗi khi cập nhật trạng thái:', error);
-//     res.status(500).json({ message: 'Không thể cập nhật trạng thái.' });
-//   }
-// });
-
-
-
-
 
 
 
@@ -228,11 +191,6 @@ tuyen.delete('/:id', async (req, res) => {
   }
 });
 
-
-
-
-
-
 // Lấy tất cả đơn hàng (Admin)
 tuyen.get('/', async (req, res) => {
   try {
@@ -245,10 +203,4 @@ tuyen.get('/', async (req, res) => {
     res.status(500).json({ message: 'Không thể lấy danh sách đơn hàng' });
   }
 });
-
-
-
-
-
-
 module.exports = tuyen;

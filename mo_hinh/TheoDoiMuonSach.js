@@ -1,21 +1,11 @@
+
 const mongoose = require('mongoose');
 
-const donHangSchema = new mongoose.Schema({
+const theoDoiMuonSachSchema = new mongoose.Schema({
   MaDocGia: { type: mongoose.Schema.Types.ObjectId, ref: 'DocGia', required: true },
-  items: [
-    {
-      MaSach: { type: mongoose.Schema.Types.ObjectId, ref: 'Sach', required: true },
-      soLuong: { type: Number, required: true, min: 1 },
-    },
-  ],
-  tongTien: { type: Number, required: true },
-  trangThai: { 
-    type: String, 
-    enum: ['Chờ xử lý', 'Đang mượn', 'Đã trả', 'Đã hủy'], 
-    default: 'Chờ xử lý' 
-  },
-  ngayTao: { type: Date, default: Date.now },
-  ngayCapNhat: { type: Date, default: Date.now },
-}, { collection: 'DonHang' }); // Đặt tên collection là 'DonHang'
+  MaSach: { type: mongoose.Schema.Types.ObjectId, ref: 'Sach', required: true },
+  NgayMuon: { type: Date, default: Date.now, required: true },
+  NgayTra: { type: Date } // Ngày trả có thể để trống nếu chưa trả
+}, { collection: 'TheoDoiMuonSach' });
 
-module.exports = mongoose.model('DonHang', donHangSchema);
+module.exports = mongoose.model('TheoDoiMuonSach', theoDoiMuonSachSchema);
