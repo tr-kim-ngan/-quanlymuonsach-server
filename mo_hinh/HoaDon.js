@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 
 const hoaDonSchema = new mongoose.Schema({
   MaDocGia: { type: mongoose.Schema.Types.ObjectId, ref: 'DocGia', required: true },
+  MaDonHang: { type: mongoose.Schema.Types.ObjectId, ref: 'DonHang', required: true }, // Liên kết đến đơn hàng
+
   items: [
     {
       MaSach: { type: mongoose.Schema.Types.ObjectId, ref: 'Sach', required: true },

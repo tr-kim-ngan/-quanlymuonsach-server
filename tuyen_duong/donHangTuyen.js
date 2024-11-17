@@ -18,9 +18,6 @@ tuyen.get('/distinct-trangThai', async (req, res) => {
   }
 });
 
-
-
-
 // Tạo đơn hàng mới
 tuyen.post('/', async (req, res) => {
   try {
@@ -68,9 +65,6 @@ tuyen.post('/', async (req, res) => {
     res.status(500).json({ message: 'Không thể tạo đơn hàng' });
   }
 });
-
-
-
 
 // Lấy danh sách đơn hàng của một độc giả (có phân trang)
 tuyen.get('/:MaDocGia', async (req, res) => {
@@ -124,13 +118,15 @@ tuyen.put('/:id', async (req, res) => {
 
       const hoaDonData = {
         MaDocGia: donHang.MaDocGia,
+        MaDonHang: donHang._id,
         items: donHang.items.map(item => ({
           MaSach: item.MaSach._id || item.MaSach,
           soLuong: item.soLuong,
           donGia: item.MaSach.DonGia || 0
         })),
         tongTien: donHang.tongTien,
-        trangThai: 'Chưa thanh toán'
+        trangThai: 'Chưa thanh toán',
+        
       };
 
       console.log("Dữ liệu hóa đơn chuẩn bị lưu:", hoaDonData);

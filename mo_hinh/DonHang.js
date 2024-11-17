@@ -7,6 +7,7 @@ if (mongoose.models['DonHang']) {
 
 const donHangSchema = new mongoose.Schema({
   MaDocGia: { type: mongoose.Schema.Types.ObjectId, ref: 'DocGia', required: true },
+
   items: [
     {
       MaSach: { type: mongoose.Schema.Types.ObjectId, ref: 'Sach', required: true },
