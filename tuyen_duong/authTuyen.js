@@ -50,10 +50,11 @@ tuyen.post('/register', async (req, res) => {
     }
 
     await newUser.save();
-    res.status(201).json({ message: 'Đăng ký thành công!' });
+    res.status(201).json({ message: 'Đăng ký thành công! 🥳' });
   } catch (error) {
     console.error("Đăng ký thất bại:", error);
-    res.status(400).json({ message: 'Đăng ký thất bại', error });
+    res.status(400).json({ message: 'Tên đăng nhập đã tồn tại, vui lòng nhập tên khác 😔', error });
+
   }
 });
 
