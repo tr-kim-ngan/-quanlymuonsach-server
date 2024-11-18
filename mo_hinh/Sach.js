@@ -10,7 +10,7 @@ const sachSchema = new mongoose.Schema({
   MaNXB: { type: mongoose.Schema.Types.ObjectId, ref: 'NhaXuatBan', required: true },
   TacGia: { type: String, required: true },
   MoTa: { type: String, required: true },
-  Anh: { type: String }, // Đường dẫn ảnh
+  Anh: { type: String }, 
   NgayHanMuon: { type: Number, required: true }
 }, { collection: 'Sach' });
 

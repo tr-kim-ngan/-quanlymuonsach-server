@@ -1,11 +1,10 @@
 const express = require('express');
-const bcrypt = require('bcrypt'); // Thêm bcrypt để mã hóa mật khẩu (nếu cần)
-const jwt = require('jsonwebtoken'); // Dùng JWT để tạo token
-const NhanVien = require('../mo_hinh/NhanVien'); // Mô hình nhân viên
-const DocGia = require('../mo_hinh/DocGia'); // Mô hình độc giả
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken'); 
+const NhanVien = require('../mo_hinh/NhanVien');
+const DocGia = require('../mo_hinh/DocGia');
 const tuyen = express.Router();
 
-// Secret key cho JWT
 const JWT_SECRET = 'your_jwt_secret_key';
 
 
@@ -14,7 +13,6 @@ tuyen.post('/register', async (req, res) => {
   try {
      
     const { username, Password, role, HoLot, Ten, NgaySinh, Phai, DiaChi, DienThoai } = req.body;
-    // Tạo hash cho mật khẩu với salt là 10 vòng lặp
     console.log("Payload nhận từ client:", req.body);
     console.log("Password nhận được:", Password); // Kiểm tra giá trị password nhận từ client
 
@@ -22,7 +20,6 @@ tuyen.post('/register', async (req, res) => {
     return res.status(400).json({ message: "Mật khẩu không được để trống." });
     }
 
-    // Tạo hash cho mật khẩu với salt là 10 vòng lặp
   
     const hashedPassword = await bcrypt.hash(Password, 10);
 
@@ -59,7 +56,6 @@ tuyen.post('/register', async (req, res) => {
 });
 
 
-// Đăng nhập
 // Đăng nhập
 tuyen.post('/login', async (req, res) => {
   try {

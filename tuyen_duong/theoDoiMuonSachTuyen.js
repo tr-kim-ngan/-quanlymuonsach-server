@@ -6,7 +6,6 @@ const TheoDoiMuonSach = require('../mo_hinh/TheoDoiMuonSach');
 const DocGia = require('../mo_hinh/DocGia');
 
 // Lấy tất cả lịch sử mượn sách
-// Lấy tất cả lịch sử mượn sách
 tuyen.get("/", async (req, res) => {
   try {
     const danhSach = await TheoDoiMuonSach.find()
@@ -35,7 +34,6 @@ tuyen.get("/", async (req, res) => {
       .json({ message: "Không thể lấy danh sách theo dõi mượn sách." });
   }
 });
-// Cập nhật trạng thái trả sách
 // Cập nhật trạng thái trả sách
 tuyen.put('/tra-sach/:id', async (req, res) => {
   try {
@@ -75,9 +73,6 @@ tuyen.put('/tra-sach/:id', async (req, res) => {
     res.status(500).json({ message: 'Không thể trả sách' });
   }
 });
-
-
-
 
 // Lấy thông tin mượn sách của một độc giả cụ thể
 tuyen.get('/docgia/:id', async (req, res) => {

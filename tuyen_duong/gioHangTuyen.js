@@ -5,7 +5,6 @@ const GioHang = require('../mo_hinh/GioHang');
 const Sach = require('../mo_hinh/Sach');
 
 // Lấy tất cả các mục trong giỏ hàng của một độc giả
-// Lấy tất cả các mục trong giỏ hàng của một độc giả
 tuyen.get('/:MaDocGia', async (req, res) => {
   try {
     const gioHang = await GioHang.findOne({ MaDocGia: req.params.MaDocGia }).populate('items.MaSach');
@@ -54,8 +53,8 @@ tuyen.put('/:id', async (req, res) => {
 tuyen.delete('/:id', async (req, res) => {
   try {
     const gioHang = await GioHang.findOneAndUpdate(
-      { 'items._id': req.params.id }, // Tìm mục có `_id` khớp
-      { $pull: { items: { _id: req.params.id } } }, // Xóa mục đó khỏi `items`
+      { 'items._id': req.params.id }, 
+      { $pull: { items: { _id: req.params.id } } }, // Xóa mục khỏi mảng items
       { new: true } // Lấy lại bản cập nhật sau khi xóa
     );
 
@@ -70,7 +69,6 @@ tuyen.delete('/:id', async (req, res) => {
   }
 });
 
-// Xóa toàn bộ giỏ hàng của một độc giả
 // Xóa tất cả các mục trong giỏ hàng của một độc giả
 tuyen.delete('/xoa-het/:MaDocGia', async (req, res) => {
   try {

@@ -7,7 +7,7 @@ const nhaXuatBanSchema = new Schema({
    Gmail: {
     type: String,
     required: true,
-    unique: true, // Đảm bảo email không bị trùng
+    unique: true, 
     validate: {
       validator: function (v) {
         return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v);

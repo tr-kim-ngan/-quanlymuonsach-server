@@ -35,7 +35,6 @@ tuyen.get('/docgia/:MaDocGia', async (req, res) => {
 });
 
 // Cập nhật trạng thái hóa đơn (xác nhận thanh toán)
-// Cập nhật trạng thái hóa đơn (xác nhận thanh toán)
 tuyen.put('/:id', async (req, res) => {
   try {
     const { trangThai } = req.body;
@@ -85,8 +84,6 @@ tuyen.put('/:id', async (req, res) => {
 });
 
 
-
-// Lấy chi tiết hóa đơn
 // Lấy chi tiết hóa đơn
 tuyen.get('/:id', async (req, res) => {
     try {
@@ -104,7 +101,7 @@ tuyen.get('/:id', async (req, res) => {
             .populate({
                 path: 'MaDonHang',
                 select: 'tenNguoiNhan soDienThoai diaChi'
-            }); // Populate MaDonHang để lấy thông tin người nhận
+            }); 
 
         console.log("Chi tiết hóa đơn sau khi populate:", hoaDon);
 

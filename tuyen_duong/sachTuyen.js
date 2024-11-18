@@ -96,21 +96,6 @@ tuyen.put('/:id', upload.single('Anh'), async (req, res) => {
     }
 });
 
-
-
-// // Xóa sách
-// tuyen.delete('/:id', async (req, res) => {
-//   try {
-//     await Sach.findByIdAndDelete(req.params.id);
-//     res.json({ message: 'Sách đã bị xóa' });
-//   } catch (loi) {
-//     res.status(500).json({ message: loi.message });
-//   }
-// });
-
-
-
-// Xóa sách với điều kiện kiểm tra
 // Xóa sách
 tuyen.delete('/:id', async (req, res) => {
   try {

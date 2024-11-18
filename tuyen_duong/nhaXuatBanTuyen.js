@@ -52,7 +52,6 @@ tuyen.get('/:id', async (req, res) => {
 });
 
 // Cập nhật thông tin nhà xuất bản
-// Cập nhật thông tin nhà xuất bản
 tuyen.put('/:id', async (req, res) => {
   try {
     const { Gmail, TenNXB, DiaChi } = req.body;
@@ -79,9 +78,6 @@ tuyen.put('/:id', async (req, res) => {
 });
 
 
-
-
-// Xóa nhà xuất bản
 // Xóa nhà xuất bản
 tuyen.delete('/:id', async (req, res) => {
     try {
