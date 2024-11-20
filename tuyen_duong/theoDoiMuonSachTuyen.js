@@ -9,7 +9,7 @@ const DocGia = require('../mo_hinh/DocGia');
 tuyen.get("/", async (req, res) => {
   try {
     const danhSach = await TheoDoiMuonSach.find()
-      .populate("MaDocGia", "HoLot Ten") // Lấy họ tên độc giả
+      .populate("MaDocGia", "HoLot Ten DienThoai") // Lấy họ tên độc giả
       .populate("MaSach", "TenSach NgayHanMuon") // Lấy tên sách
 
       .sort({ NgayMuon: -1 }); // Sắp xếp theo ngày mượn mới nhất
@@ -21,6 +21,7 @@ tuyen.get("/", async (req, res) => {
       HoTen: record.MaDocGia
         ? `${record.MaDocGia.HoLot} ${record.MaDocGia.Ten}`
         : "N/A",
+      DienThoai: record.MaDocGia ? record.MaDocGia.DienThoai : "N/A",
       TenSach: record.MaSach ? record.MaSach.TenSach : "N/A",
       NgayHanMuon: record.MaSach?.NgayHanMuon || "Không có hạn",
        soLuong: record.soLuong || "N/A",
