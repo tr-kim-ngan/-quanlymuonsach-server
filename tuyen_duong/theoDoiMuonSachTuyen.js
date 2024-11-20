@@ -156,7 +156,7 @@ tuyen.get('/dang-muon/:MaDocGia', async (req, res) => {
     const danhSach = await TheoDoiMuonSach.find({
       MaDocGia: req.params.MaDocGia,
       NgayTra: null, // Chỉ lấy sách chưa trả
-      TrangThai: { $in: ["Đang mượn", "Chờ xác nhận"] }
+      TrangThai: { $in: ["Đang mượn", "Chờ xác nhận", "Đã trả"] },
     })
       .populate('MaDocGia', 'HoLot Ten') // Lấy họ tên độc giả
       .populate('MaSach', 'TenSach NgayHanMuon'); // Lấy tên sách và hạn mượn
@@ -261,6 +261,31 @@ tuyen.get('/tat-ca/:MaDocGia', async (req, res) => {
   } catch (error) {
     console.error('Lỗi khi lấy danh sách sách:', error);
     res.status(500).json({ message: 'Không thể lấy danh sách sách.' });
+  }
+});
+// Lấy lịch sử mượn sách của một độc giả (bao gồm tất cả các trạng thái)
+tuyen.get('/lich-su/:MaDocGia', async (req, res) => {
+  try {
+    const danhSach = await TheoDoiMuonSach.find({ MaDocGia: req.params.MaDocGia })
+      .populate('MaDocGia', 'HoLot Ten DienThoai')
+      .populate('MaSach', 'TenSach NgayHanMuon')
+      .sort({ NgayMuon: -1 }); // Sắp xếp theo ngày mượn mới nhất
+
+    const danhSachDaXuLy = danhSach.map((record) => ({
+      ...record.toObject(),
+      HoTen: record.MaDocGia
+        ? `${record.MaDocGia.HoLot} ${record.MaDocGia.Ten}`
+        : 'N/A',
+      TenSach: record.MaSach ? record.MaSach.TenSach : 'N/A',
+      HanMuon: record.MaSach?.NgayHanMuon || 'Không có hạn',
+      soLuong: record.soLuong || 'N/A',
+      TrangThai: record.TrangThai || (record.NgayTra ? "Đã trả" : "Đang mượn"),
+    }));
+
+    res.json(danhSachDaXuLy);
+  } catch (error) {
+    console.error('Lỗi khi lấy lịch sử mượn sách:', error);
+    res.status(500).json({ message: 'Không thể lấy lịch sử mượn sách.' });
   }
 });
 
