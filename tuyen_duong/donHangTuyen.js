@@ -89,6 +89,7 @@ tuyen.get('/:MaDocGia', async (req, res) => {
   }
 });
 
+
 // Cập nhật trạng thái đơn hàng
 tuyen.put('/:id', async (req, res) => {
   try {
@@ -109,6 +110,16 @@ tuyen.put('/:id', async (req, res) => {
     if (!validStatuses.includes(trangThai)) {
       return res.status(400).json({ message: 'Trạng thái không hợp lệ.' });
     }
+    if (trangThai === 'Đã hủy') {
+          for (const item of donHang.items) {
+            const sach = await Sach.findById(item.MaSach);
+            if (sach) {
+              sach.SoQuyen += item.soLuong; // Cộng lại số lượng sách
+              await sach.save();
+            }
+          }
+    }
+
     // Cập nhật trạng thái và ngày cập nhật
     donHang.trangThai = trangThai;
     donHang.ngayCapNhat = Date.now();
@@ -139,6 +150,8 @@ tuyen.put('/:id', async (req, res) => {
         console.error("Lỗi khi lưu hóa đơn:", error);
       }
     }
+     // Nếu trạng thái là "Đã hủy", cập nhật lại số lượng sách trong kho
+   
     // Lưu lại đơn hàng
     await donHang.save();
 
@@ -148,6 +161,36 @@ tuyen.put('/:id', async (req, res) => {
     res.status(500).json({ message: 'Không thể cập nhật trạng thái đơn hàng' });
   }
 });
+// Cập nhật lại số lượng sách sau khi đơn hàng bị hủy
+tuyen.put('/capnhat-soluong/:id', async (req, res) => {
+  try {
+    const donHang = await DonHang.findById(req.params.id);
+
+    if (!donHang) {
+      return res.status(404).json({ message: 'Không tìm thấy đơn hàng để cập nhật số lượng sách' });
+    }
+
+    if (donHang.trangThai !== 'Đã hủy') {
+      return res.status(400).json({ message: 'Chỉ có thể cập nhật lại số lượng sách khi đơn hàng ở trạng thái "Đã hủy"' });
+    }
+
+    // Cập nhật lại số lượng sách trong kho
+    for (const item of donHang.items) {
+      const sach = await Sach.findById(item.MaSach);
+      if (sach) {
+        sach.SoQuyen += item.soLuong; // Cộng lại số lượng sách
+        await sach.save();
+      }
+    }
+
+    res.json({ message: 'Số lượng sách đã được cập nhật sau khi đơn hàng bị hủy' });
+  } catch (error) {
+    console.error('Lỗi khi cập nhật số lượng sách:', error);
+    res.status(500).json({ message: 'Không thể cập nhật số lượng sách' });
+  }
+});
+
+
 
 // Hủy đơn hàng và cập nhật lại số lượng sách
 tuyen.delete('/:id', async (req, res) => {
