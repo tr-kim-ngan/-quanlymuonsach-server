@@ -17,14 +17,14 @@ tuyen.get("/", async (req, res) => {
     // Xử lý nếu `MaSach` hoặc `MaDocGia` bị null
     const danhSachDaXuLy = danhSach.map((record) => ({
       ...record.toObject(),
-      TrangThai: record.NgayTra ? "Đã trả" : "Đang mượn",
+       TrangThai: record.TrangThai || (record.NgayTra ? "Đã trả" : "Đang mượn"),
       HoTen: record.MaDocGia
         ? `${record.MaDocGia.HoLot} ${record.MaDocGia.Ten}`
         : "N/A",
       DienThoai: record.MaDocGia ? record.MaDocGia.DienThoai : "N/A",
       TenSach: record.MaSach ? record.MaSach.TenSach : "N/A",
       NgayHanMuon: record.MaSach?.NgayHanMuon || "Không có hạn",
-       soLuong: record.soLuong || "N/A",
+      soLuong: record.soLuong || "N/A",
     }));
 
     res.json(danhSachDaXuLy);
@@ -36,7 +36,70 @@ tuyen.get("/", async (req, res) => {
   }
 });
 // Cập nhật trạng thái trả sách
+// tuyen.put('/tra-sach/:id', async (req, res) => {
+//   try {
+//     // Tìm bản ghi theo dõi mượn sách
+//     const theoDoi = await TheoDoiMuonSach.findById(req.params.id).populate('MaSach');
+
+//     if (!theoDoi) {
+//       return res.status(404).json({ message: 'Không tìm thấy bản ghi theo dõi mượn sách' });
+//     }
+//     theoDoi.TrangThai = 'Chờ xác nhận'; // Cập nhật trạng thái đã trả
+
+//     // Kiểm tra giá trị soLuong, đảm bảo không phải undefined hoặc null
+//     const soLuong = theoDoi.soLuong;
+//     if (!soLuong || isNaN(soLuong)) {
+//       return res.status(400).json({ message: 'Số lượng sách mượn không hợp lệ' });
+//     }
+
+//     // Cập nhật Ngày Trả
+//     theoDoi.NgayTra = new Date(); // Ghi nhận ngày trả hiện tại
+
+//     // Lấy thông tin sách
+//     const sach = theoDoi.MaSach;
+
+//     if (!sach) {
+//       return res.status(404).json({ message: 'Không tìm thấy sách trong bản ghi theo dõi' });
+//     }
+
+//     // Cập nhật số lượng sách trong kho
+//     sach.SoQuyen += soLuong; // Cộng lại số lượng sách đã mượn vào kho
+//     await sach.save();
+
+//     // Lưu lại bản ghi theo dõi mượn sách
+//     await theoDoi.save();
+
+//     res.json({ message: 'Trả sách thành công, số lượng sách đã được cập nhật', theoDoi });
+//   } catch (error) {
+//     console.error('Lỗi khi cập nhật trạng thái trả sách:', error);
+//     res.status(500).json({ message: 'Không thể trả sách' });
+//   }
+// });
+
+// Độc giả yêu cầu trả sách (trạng thái "Chờ xác nhận")
 tuyen.put('/tra-sach/:id', async (req, res) => {
+  try {
+    // Tìm bản ghi theo dõi mượn sách
+    const theoDoi = await TheoDoiMuonSach.findById(req.params.id);
+
+    if (!theoDoi) {
+      return res.status(404).json({ message: 'Không tìm thấy bản ghi theo dõi mượn sách' });
+    }
+
+    // Chuyển trạng thái thành "Chờ xác nhận"
+    theoDoi.TrangThai = "Chờ xác nhận";
+    await theoDoi.save();
+    console.log("Trạng thái sau khi yêu cầu trả sách:", theoDoi.TrangThai);
+
+    res.json({ message: 'Yêu cầu trả sách đã được gửi và đang chờ xác nhận.', theoDoi });
+  } catch (error) {
+    console.error('Lỗi khi cập nhật trạng thái trả sách:', error);
+    res.status(500).json({ message: 'Không thể gửi yêu cầu trả sách.' });
+  }
+});
+
+// Xác nhận trả sách (dành cho admin)
+tuyen.put('/xac-nhan-tra-sach/:id', async (req, res) => {
   try {
     // Tìm bản ghi theo dõi mượn sách
     const theoDoi = await TheoDoiMuonSach.findById(req.params.id).populate('MaSach');
@@ -45,35 +108,33 @@ tuyen.put('/tra-sach/:id', async (req, res) => {
       return res.status(404).json({ message: 'Không tìm thấy bản ghi theo dõi mượn sách' });
     }
 
-    // Kiểm tra giá trị soLuong, đảm bảo không phải undefined hoặc null
-    const soLuong = theoDoi.soLuong;
-    if (!soLuong || isNaN(soLuong)) {
-      return res.status(400).json({ message: 'Số lượng sách mượn không hợp lệ' });
+    // Kiểm tra trạng thái phải là "Chờ xác nhận"
+    if (theoDoi.TrangThai !== "Chờ xác nhận") {
+      return res.status(400).json({ message: 'Chỉ có thể xác nhận những yêu cầu đang ở trạng thái "Chờ xác nhận"' });
     }
 
-    // Cập nhật Ngày Trả
+    // Cập nhật trạng thái thành "Đã trả"
+    theoDoi.TrangThai = "Đã trả";
     theoDoi.NgayTra = new Date(); // Ghi nhận ngày trả hiện tại
 
-    // Lấy thông tin sách
+    // Cập nhật số lượng sách trong kho
     const sach = theoDoi.MaSach;
-
-    if (!sach) {
-      return res.status(404).json({ message: 'Không tìm thấy sách trong bản ghi theo dõi' });
+    if (sach) {
+      sach.SoQuyen += theoDoi.soLuong;
+      await sach.save();
     }
 
-    // Cập nhật số lượng sách trong kho
-    sach.SoQuyen += soLuong; // Cộng lại số lượng sách đã mượn vào kho
-    await sach.save();
-
-    // Lưu lại bản ghi theo dõi mượn sách
+    // Lưu thay đổi
     await theoDoi.save();
+    console.log("Trạng thái sau khi xác nhận trả sách:", theoDoi.TrangThai);
 
-    res.json({ message: 'Trả sách thành công, số lượng sách đã được cập nhật', theoDoi });
+    res.json({ message: 'Xác nhận trả sách thành công và cập nhật kho sách.', theoDoi });
   } catch (error) {
-    console.error('Lỗi khi cập nhật trạng thái trả sách:', error);
-    res.status(500).json({ message: 'Không thể trả sách' });
+    console.error('Lỗi khi xác nhận trả sách:', error);
+    res.status(500).json({ message: 'Không thể xác nhận trả sách.' });
   }
 });
+
 
 // Lấy thông tin mượn sách của một độc giả cụ thể
 tuyen.get('/docgia/:id', async (req, res) => {
@@ -95,6 +156,7 @@ tuyen.get('/dang-muon/:MaDocGia', async (req, res) => {
     const danhSach = await TheoDoiMuonSach.find({
       MaDocGia: req.params.MaDocGia,
       NgayTra: null, // Chỉ lấy sách chưa trả
+      TrangThai: { $in: ["Đang mượn", "Chờ xác nhận"] }
     })
       .populate('MaDocGia', 'HoLot Ten') // Lấy họ tên độc giả
       .populate('MaSach', 'TenSach NgayHanMuon'); // Lấy tên sách và hạn mượn
@@ -108,7 +170,8 @@ tuyen.get('/dang-muon/:MaDocGia', async (req, res) => {
       TenSach: record.MaSach ? record.MaSach.TenSach : 'N/A',
       HanMuon: record.MaSach?.NgayHanMuon || 'Không có hạn',
       soLuong: record.soLuong || 'N/A',
-      TrangThai: record.NgayTra ? 'Đã trả' : 'Đang mượn',
+      //TrangThai: record.NgayTra ? 'Đã trả' : 'Đang mượn',
+       TrangThai: record.TrangThai, 
     }));
 
     res.json(danhSachDaXuLy);
@@ -172,6 +235,37 @@ tuyen.get('/:id', async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 });
+
+// Lấy tất cả lịch sử mượn sách của khách hàng (bao gồm cả đang mượn và đã trả)
+tuyen.get('/tat-ca/:MaDocGia', async (req, res) => {
+  try {
+    const danhSach = await TheoDoiMuonSach.find({
+      MaDocGia: req.params.MaDocGia,
+    })
+      .populate('MaDocGia', 'HoLot Ten') // Lấy họ tên độc giả
+      .populate('MaSach', 'TenSach NgayHanMuon'); // Lấy tên sách và hạn mượn
+
+    // Xử lý dữ liệu trả về
+    const danhSachDaXuLy = danhSach.map((record) => ({
+      ...record.toObject(),
+      HoTen: record.MaDocGia
+        ? `${record.MaDocGia.HoLot} ${record.MaDocGia.Ten}`
+        : 'N/A',
+      TenSach: record.MaSach ? record.MaSach.TenSach : 'N/A',
+      HanMuon: record.MaSach?.NgayHanMuon || 'Không có hạn',
+      soLuong: record.soLuong || 'N/A',
+      TrangThai: record.TrangThai || (record.NgayTra ? 'Đã trả' : 'Đang mượn'),
+    }));
+
+    res.json(danhSachDaXuLy);
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách sách:', error);
+    res.status(500).json({ message: 'Không thể lấy danh sách sách.' });
+  }
+});
+
+
+
 
 
 // Xóa lịch sử mượn sách
